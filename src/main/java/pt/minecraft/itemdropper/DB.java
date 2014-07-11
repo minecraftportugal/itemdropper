@@ -28,7 +28,7 @@ public class DB {
 		this.plugin = plugin;
 	}
 	
-	public boolean init() throws SQLException
+	public boolean init(boolean checkCreateTable) throws SQLException
 	{
 		String host = plugin.getConfig().getString("mysql.host"),
 			   db = plugin.getConfig().getString("mysql.db");
@@ -57,13 +57,16 @@ public class DB {
         
         connect();
         
-        try {
-        	createTableIfNotExists();
-        	
-        } catch(SQLException e) {
-        	Utils.severe("Could not create table in database");
-        	
-        	throw e;
+        if( checkCreateTable )
+        {
+	        try {
+	        	createTableIfNotExists();
+	        	
+	        } catch(SQLException e) {
+	        	Utils.severe("Could not create table in database");
+	        	
+	        	throw e;
+	        }   
         }
         
 

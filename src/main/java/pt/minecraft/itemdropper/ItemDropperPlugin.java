@@ -26,10 +26,10 @@ public class ItemDropperPlugin extends JavaPlugin {
 		
 		try {
 			
+			pluginManager.registerEvents(new ItemDroppedListener(this), this);
+			
 			poller = new ItemDropperPoller(this);
 	        poller.runTaskAsynchronously(this);
-	        
-			pluginManager.registerEvents(new ItemDroppedListener(this), this);
 	        
 			Utils.info("enabled successfully");	
 
@@ -59,6 +59,12 @@ public class ItemDropperPlugin extends JavaPlugin {
 			poller.cancel();
 		
 		Utils.info("disabled successfully");
+	}
+	
+	
+	public ItemDropperPoller getPoller()
+	{
+		return this.poller;
 	}
 	
 
