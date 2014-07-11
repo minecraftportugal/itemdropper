@@ -1,0 +1,3 @@
+name: ItemDropper
+main: pt.minecraft.itemdropper.ItemDropperPlugin
+version: 0.1
