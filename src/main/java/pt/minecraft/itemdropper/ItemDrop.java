@@ -1,10 +1,13 @@
 package pt.minecraft.itemdropper;
 
+import org.bukkit.entity.Player;
+
 class ItemDrop
 {
     private int id, accountId, item, size;
     private short itemAux;
     private long removeDate = 0;
+    private Player player = null;
 
 
     public ItemDrop(int id, int acid, int item, int size)
@@ -50,7 +53,8 @@ class ItemDrop
         return this.size;
     }
 
-	public long getRemoveDate() {
+	public long getRemoveDate()
+	{
 		return removeDate;
 	}
 
@@ -61,6 +65,13 @@ class ItemDrop
 	{
 		this.removeDate = System.currentTimeMillis();
 	}
+
+	public Player getPlayer() {
+		return player;
+	}
+
+	public void setPlayer(Player player) {
+		this.player = player;
+	}
 }
 
-// vim: et:ts=4:sw=4

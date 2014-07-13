@@ -20,6 +20,7 @@ public class DB {
 	public static final String TABLE_NAME = "cenas";
 	
 	private boolean isClosed = false;
+	public static boolean configErrorBefore = false;
 	
 	
 	
@@ -41,7 +42,13 @@ public class DB {
 		
 		if(host == null || username == null || password == null)
 		{
-			Utils.error("Database configurations not found.");
+			if( !configErrorBefore )
+			{
+				configErrorBefore = true;
+				
+				Utils.error("Database configurations not found.");	
+			}
+			
 			return false;
 		}
 		
@@ -49,6 +56,9 @@ public class DB {
 			port = 3306;
 		
         url = "jdbc:mysql://" + host + ":" + port + "/" + db + "";
+        
+        if(plugin.isDebugMode())
+        	Utils.info("[DEBUG] Using database url: '%s'", url);
         
 //        if( tablePrefix == null )
 //        	tablePrefix = "";
@@ -167,6 +177,9 @@ public class DB {
 			sb.append(" PRIMARY KEY (`id`) "								);
 			
 			sb.append(");");
+			
+			if( plugin.isDebugMode() )
+				Utils.info("[DEBUG] Creating database");
 			
 			PreparedStatement stmt = prepare( sb.toString() );
 			stmt.executeUpdate();

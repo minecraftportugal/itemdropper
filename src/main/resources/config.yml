@@ -1,0 +1,4 @@
+mysql: {}
+debug: false
+message:
+pollDatabase: 1

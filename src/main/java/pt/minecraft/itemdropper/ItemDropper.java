@@ -18,11 +18,6 @@ package pt.minecraft.itemdropper;
 //import java.sql.SQLException;
 //import java.sql.Timestamp;
 //
-//import de.luricos.bukkit.xAuth.database.Table;
-//import de.luricos.bukkit.xAuth.utils.xAuthLog;
-//import de.luricos.bukkit.xAuth.xAuth;
-//import de.luricos.bukkit.xAuth.xAuthPlayer;
-//import de.luricos.bukkit.xAuth.MessageHandler;
 
 
 public class ItemDropper
@@ -67,7 +62,7 @@ public class ItemDropper
 //            plugin.getDatabaseController().close(conn, ps);
 //        }
 //    }
-//
+
 //    public void deliverDrop(xAuthPlayer xp, ItemDrop d)
 //    { 
 //        Player p =  xp.getPlayer();

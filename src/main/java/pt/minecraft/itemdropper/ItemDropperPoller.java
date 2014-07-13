@@ -2,7 +2,6 @@ package pt.minecraft.itemdropper;
 
 import org.bukkit.Bukkit;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,18 +20,18 @@ class ItemDropperPoller extends BukkitRunnable
 		@Override
 		public void run()
 		{
-			while(!cancel)
-			{
-				try {
-					synchronized(itemDropRunnable)
-					{
-						itemDropRunnable.wait();
-					}
+//			while(!cancel)
+//			{
+//				try {
+//					synchronized(itemDropRunnable)
+//					{
+//						itemDropRunnable.wait();
+//					}
 					
 					Bukkit.getServer().getPluginManager().callEvent(new ItemDroppedEvent());
-					
-				} catch (InterruptedException e) { }
-			}
+//					
+//				} catch (InterruptedException e) { }
+//			}
 			
 		}
 		
@@ -47,8 +46,8 @@ class ItemDropperPoller extends BukkitRunnable
     private long interval;
     private HashMap<Integer, ItemDrop> undroppedItems = new HashMap<Integer, ItemDrop>();
     private ArrayList<ItemDrop> itemsToRemove = new ArrayList<ItemDrop>(); 
-    private ItemDropRunnable itemDropRunnable = null;
-    private BukkitTask itemDropTask = null;
+    //private ItemDropRunnable itemDropRunnable = null;
+    //private BukkitTask itemDropTask = null;
     private final DB dbConn;
 
     
@@ -58,10 +57,15 @@ class ItemDropperPoller extends BukkitRunnable
         interval = plugin.getConfig().getInt("pollDatabase") * 1000L;
         
         dbConn = new DB(plugin);
-        dbConn.init(true);
         
-        itemDropRunnable = new ItemDropRunnable();
-        itemDropTask = itemDropRunnable.runTask(plugin);
+        if( !dbConn.init(true) )
+        	throw new SQLException("Could not connect to database");
+        
+        if( plugin.isDebugMode() )
+        	Utils.info("[DEBUG] Database poll interval: %d", interval);
+        
+//        itemDropRunnable = new ItemDropRunnable();
+//        itemDropTask = itemDropRunnable.runTaskLater(plugin, 20);
     }
     
 
@@ -69,7 +73,7 @@ class ItemDropperPoller extends BukkitRunnable
     {
         cancel = true;
         
-        itemDropTask.cancel();
+        //itemDropTask.cancel();
         super.cancel();
     }
     
@@ -144,7 +148,7 @@ class ItemDropperPoller extends BukkitRunnable
                     if( dropQueue.size() > 0 )
                     {
                     	if( plugin.isDebugMode() );
-                			Utils.info("Received %d new items from database", dropQueue.size());
+                			Utils.info("[DEBUG] Received %d new items from database", dropQueue.size());
                 		
                     	synchronized(undroppedItems)
                     	{
@@ -154,11 +158,13 @@ class ItemDropperPoller extends BukkitRunnable
                     	
                     	dropQueue.clear();
                     	
-                    	synchronized(itemDropRunnable)
-                    	{
-	                    	// send the event now
-                    		itemDropRunnable.notify();
-                    	}
+                    	(new ItemDropRunnable()).runTask(plugin);
+                    	
+//                    	synchronized(itemDropRunnable)
+//                    	{
+//	                    	// send the event now
+//                    		itemDropRunnable.notify();
+//                    	}
                     }
 	                
 	            } catch (SQLException e) {
@@ -205,7 +211,7 @@ class ItemDropperPoller extends BukkitRunnable
     	}
     }
     
-    public void removeItemDrop(List<ItemDrop> dropList)
+    public void removeItemDrops(List<ItemDrop> dropList)
     {	    	
     	synchronized(itemsToRemove)
     	{

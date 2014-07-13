@@ -14,6 +14,8 @@ public class ItemDropperPlugin extends JavaPlugin {
 	
 	private boolean debugMode = false;
 	private ItemDropperPoller poller = null;
+	private PlayerProvider playerProvider = null;
+	private ItemDroppedListener listener = null;
 	
 	
 	
@@ -24,18 +26,31 @@ public class ItemDropperPlugin extends JavaPlugin {
 		
 		debugMode = getConfig().getBoolean("debug");
 		
+		this.saveDefaultConfig();
+		this.reloadConfig();
+		
 		try {
 			
-			pluginManager.registerEvents(new ItemDroppedListener(this), this);
-			
+			playerProvider = new PlayerProvider(this);
+			listener = new ItemDroppedListener(this);
 			poller = new ItemDropperPoller(this);
+			
+			pluginManager.registerEvents(listener, this);
+			
+			
+			// try to register the xAuth Listener
+			try {
+				pluginManager.registerEvents(new XAuthLoginListener(), this);
+			} catch(Exception e) { }
+			
+			
 	        poller.runTaskAsynchronously(this);
+	        
+	        this.saveConfig();
 	        
 			Utils.info("enabled successfully");	
 
 		} catch (SQLException e) {
-
-
 			
 			if( debugMode )
 				Utils.severe(e, INIT_FAIL_MESSAGE);
@@ -43,8 +58,6 @@ public class ItemDropperPlugin extends JavaPlugin {
 				Utils.severe(INIT_FAIL_MESSAGE);
 			
 			pluginManager.disablePlugin(this);
-	        
-
 		}
 	}
 	
@@ -55,8 +68,13 @@ public class ItemDropperPlugin extends JavaPlugin {
 	{
 		HandlerList.unregisterAll(this);
 		
+		if( listener != null )
+			listener.cancel();
+		
 		if( poller != null )
 			poller.cancel();
+		
+		DB.configErrorBefore = false;
 		
 		Utils.info("disabled successfully");
 	}
@@ -73,6 +91,13 @@ public class ItemDropperPlugin extends JavaPlugin {
 	public boolean isDebugMode()
 	{
 		return this.debugMode;
+	}
+
+
+
+	public PlayerProvider getPlayerProvider()
+	{
+		return playerProvider;
 	}
 	
 	
