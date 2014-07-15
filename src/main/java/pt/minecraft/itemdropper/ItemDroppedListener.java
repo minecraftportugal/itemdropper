@@ -36,7 +36,7 @@ public class ItemDroppedListener implements Listener {
 		{
 			ArrayList<ItemDrop> toUpdate = new ArrayList<ItemDrop>();
 			PreparedStatement stmt;
-			String sql = String.format("UPDATE `%s` SET `takendate` = ? WHERE `id` = ?", DB.TABLE_NAME);
+			String sql = String.format("UPDATE `%s` SET `takendate` = ? WHERE `id` = ?", dbConn.getTableName());
 			
 			isRunning = true;
 			
@@ -155,8 +155,8 @@ public class ItemDroppedListener implements Listener {
 		if( !dbConn.init(false) )
 			throw new SQLException("Could not connect to database");
 		
-		messageDelivered = plugin.getConfig().getString("message.delivered");
-		messageDelivered = plugin.getConfig().getString("message.dropped");
+		messageDelivered = plugin.getConfig().getString("messages.delivered");
+		messageDropped = plugin.getConfig().getString("messages.dropped");
 		
 		dataBaseUpdater = new DataBaseUpdaterRunnable();
 		dataBaseUpdater.runTaskAsynchronously(plugin);

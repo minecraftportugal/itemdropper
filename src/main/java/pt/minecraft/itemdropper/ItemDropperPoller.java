@@ -89,7 +89,7 @@ class ItemDropperPoller extends BukkitRunnable
         ItemDrop drop;
         ArrayList<ItemDrop> dropQueue = new ArrayList<ItemDrop>();
         
-        String sql = String.format("SELECT * FROM `%s` WHERE `id` > ? AND `takendate` IS null AND `active` = 1 ORDER BY `id` ASC;", DB.TABLE_NAME);
+        String sql = String.format("SELECT * FROM `%s` WHERE `id` > ? AND `takendate` IS null AND `active` = 1 ORDER BY `id` ASC;", dbConn.getTableName());
         
         cancel = false;
         

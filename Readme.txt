@@ -1,3 +1,6 @@
+config.yml example:
+
+```
 mysql:
   enabled: false
   host: localhost
@@ -11,3 +14,4 @@ pollDatabase: 1
 messages:
   delivered: You have been delivered %s time(s) the item '%s'
   dropped: Your inventory was full, the items were dropped on the ground
+```

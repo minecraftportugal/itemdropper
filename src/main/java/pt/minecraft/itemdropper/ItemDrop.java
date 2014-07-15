@@ -5,7 +5,7 @@ import org.bukkit.entity.Player;
 class ItemDrop
 {
     private int id, accountId, item, size;
-    private short itemAux;
+    private short itemAux = 0;
     private long removeDate = 0;
     private Player player = null;
 

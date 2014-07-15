@@ -2,6 +2,7 @@ package pt.minecraft.itemdropper;
 
 import java.sql.SQLException;
 
+
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -18,13 +19,13 @@ public class ItemDropperPlugin extends JavaPlugin {
 	private ItemDroppedListener listener = null;
 	
 	
-	
 	@Override
 	public void onEnable() {
 
 		PluginManager pluginManager = getServer().getPluginManager();
 		
 		debugMode = getConfig().getBoolean("debug");
+		
 		
 		this.saveDefaultConfig();
 		this.reloadConfig();
@@ -80,7 +81,7 @@ public class ItemDropperPlugin extends JavaPlugin {
 		
 		Utils.info("disabled successfully");
 	}
-	
+
 	
 	public ItemDropperPoller getPoller()
 	{

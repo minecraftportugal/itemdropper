@@ -17,7 +17,7 @@ public class DB {
 	//private String tablePrefix = null;
 	private boolean configured = false;
 	
-	public static final String TABLE_NAME = "cenas";
+	private String table_name = "cenas";
 	
 	private boolean isClosed = false;
 	public static boolean configErrorBefore = false;
@@ -33,12 +33,22 @@ public class DB {
 	{
 		String host = plugin.getConfig().getString("mysql.host"),
 			   db = plugin.getConfig().getString("mysql.db");
+		
+		boolean enabled = plugin.getConfig().getBoolean("mysql.enabled");
 			   
 		int port = plugin.getConfig().getInt("mysql.port");
 		
 		username = plugin.getConfig().getString("mysql.username");
 		password = plugin.getConfig().getString("mysql.password");
+		table_name = plugin.getConfig().getString("mysql.table");
 		//tablePrefix = plugin.getConfig().getString("mysql.prefix");
+		
+		if( !enabled )
+		{
+			Utils.error("Configure your database in config.yml and then change enabled to true.");
+			
+			return false;
+		}
 		
 		if(host == null || username == null || password == null)
 		{
@@ -54,6 +64,9 @@ public class DB {
 		
 		if( port <= 0 )
 			port = 3306;
+		
+		if( table_name == null || table_name.length() == 0 )
+			table_name = "itemdrop";
 		
         url = "jdbc:mysql://" + host + ":" + port + "/" + db + "";
         
@@ -155,7 +168,7 @@ public class DB {
 	
 	private void createTableIfNotExists() throws SQLException
 	{
-        if( !tableExists(TABLE_NAME) )
+        if( !tableExists(table_name) )
         {
         	StringBuilder sb = new StringBuilder();
         	sb.append("CREATE TABLE `");
@@ -163,7 +176,7 @@ public class DB {
 //        	if(tablePrefix.length() > 0 )
 //        		sb.append(tablePrefix);
         	
-        	sb.append(TABLE_NAME);
+        	sb.append(table_name);
         	sb.append("` ( ");
         	
         	sb.append(" `id` INT UNSIGNED NOT NULL AUTO_INCREMENT, "		);
@@ -186,6 +199,11 @@ public class DB {
 			close(stmt);
 				
         }
+	}
+	
+	public String getTableName()
+	{
+		return table_name;
 	}
 	
     public static void close(PreparedStatement stmt) throws SQLException
