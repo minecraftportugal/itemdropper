@@ -3,11 +3,17 @@ package pt.minecraft.itemdropper;
 import java.sql.SQLException;
 
 
+
+
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitTask;
+
+import sun.rmi.runtime.NewThreadAction;
 
 public class ItemDropperPlugin extends JavaPlugin {
+	
 	
 	public static final String PLUGIN_NAME = "ItemDropper";
 	
@@ -17,6 +23,7 @@ public class ItemDropperPlugin extends JavaPlugin {
 	private ItemDropperPoller poller = null;
 	private PlayerProvider playerProvider = null;
 	private ItemDroppedListener listener = null;
+	private BukkitTask timedTask = null;
 	
 	
 	@Override
@@ -44,12 +51,17 @@ public class ItemDropperPlugin extends JavaPlugin {
 				pluginManager.registerEvents(xAuthListener, this);
 			
 			else
-			if( isDebugMode() )
-				Utils.severe("[DEBUG] Cannot register XAuthLoginListener, maybe incompatible version.");
+			{				
+				int period = getConfig().getInt("falbackCheckPeriod", 1);
+				Utils.info("Auth plugin not found or not compatible, falling back to timed check of %d second(s)", period);
+				
+				timedTask = (new TimedCheckRunnable()).runTaskTimer(this, 100L, 20L * period);
+			}
 			
-	        poller.runTaskAsynchronously(this);
-	        
+			
 	        this.saveConfig();
+	        
+	        poller.runTaskAsynchronously(this);
 	        
 			Utils.info("enabled successfully");	
 

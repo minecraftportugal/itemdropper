@@ -54,7 +54,8 @@ class ItemDropperPoller extends BukkitRunnable
     public ItemDropperPoller(ItemDropperPlugin plugin) throws SQLException
     {
     	this.plugin = plugin;
-        interval = plugin.getConfig().getInt("pollDatabase") * 1000L;
+    	int _interval = plugin.getConfig().getInt("pollDatabase", 1);
+        interval = _interval * 1000L;
         
         dbConn = new DB(plugin);
         
@@ -62,7 +63,7 @@ class ItemDropperPoller extends BukkitRunnable
         	throw new SQLException("Could not connect to database");
         
         if( plugin.isDebugMode() )
-        	Utils.info("[DEBUG] Database poll interval: %d", interval);
+        	Utils.info("[DEBUG] Database poll interval: %d", _interval);
         
 //        itemDropRunnable = new ItemDropRunnable();
 //        itemDropTask = itemDropRunnable.runTaskLater(plugin, 20);
