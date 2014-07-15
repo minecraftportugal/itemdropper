@@ -10,8 +10,6 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
-import sun.rmi.runtime.NewThreadAction;
-
 public class ItemDropperPlugin extends JavaPlugin {
 	
 	
@@ -82,6 +80,9 @@ public class ItemDropperPlugin extends JavaPlugin {
 	public void onDisable()
 	{
 		HandlerList.unregisterAll(this);
+		
+		if( timedTask != null )
+			timedTask.cancel();
 		
 		if( listener != null )
 			listener.cancel();
