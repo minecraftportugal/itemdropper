@@ -6,6 +6,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.plugin.Plugin;
 
 import de.luricos.bukkit.xAuth.xAuth;
 import de.luricos.bukkit.xAuth.xAuthPlayer;
@@ -73,24 +74,25 @@ public class XAuthLoginListener implements Listener {
 	
 	public static XAuthLoginListener safeInstance()
 	{
-		try {
-			xAuth plugin = null;
-			Method m = null;
-			
-			try {
-				m = xAuth.class.getMethod("hasVersionFix");
-			} catch(Exception e) { }
-			
-			if( m == null )
-				return null;
-			
-			plugin = (xAuth) Bukkit.getServer().getPluginManager().getPlugin(PlayerProvider.AuthPluginType.XAUTH.getName());
-	
-			return ( plugin.hasVersionFix() < 1 ) ? null : new XAuthLoginListener();
-			
-		} catch(Exception e) {
+		Plugin jPlugin = Bukkit.getServer().getPluginManager().getPlugin(PlayerProvider.AuthPluginType.XAUTH.getName());
+		
+		if( jPlugin == null )
 			return null;
-		}
+		
+		xAuth plugin = (xAuth)jPlugin;
+		Method m = null;
+		
+		try {
+			m = xAuth.class.getMethod("hasVersionFix");
+		} catch(Exception e) { }
+		
+		if( m == null )
+			return null;
+		
+		plugin = (xAuth) Bukkit.getServer().getPluginManager().getPlugin(PlayerProvider.AuthPluginType.XAUTH.getName());
+
+		return ( plugin.hasVersionFix() < 1 ) ? null : new XAuthLoginListener();
+
 	}
 
 
