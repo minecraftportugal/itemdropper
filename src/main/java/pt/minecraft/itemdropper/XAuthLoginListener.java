@@ -73,19 +73,24 @@ public class XAuthLoginListener implements Listener {
 	
 	public static XAuthLoginListener safeInstance()
 	{
-		xAuth plugin = null;
-		Method m = null;
-		
 		try {
-			m = xAuth.class.getMethod("hasVersionFix");
-		} catch(Exception e) { }
-		
-		if( m == null )
+			xAuth plugin = null;
+			Method m = null;
+			
+			try {
+				m = xAuth.class.getMethod("hasVersionFix");
+			} catch(Exception e) { }
+			
+			if( m == null )
+				return null;
+			
+			plugin = (xAuth) Bukkit.getServer().getPluginManager().getPlugin(PlayerProvider.AuthPluginType.XAUTH.getName());
+	
+			return ( plugin.hasVersionFix() < 1 ) ? null : new XAuthLoginListener();
+			
+		} catch(Exception e) {
 			return null;
-		
-		plugin = (xAuth) Bukkit.getServer().getPluginManager().getPlugin(PlayerProvider.AuthPluginType.XAUTH.getName());
-
-		return ( plugin.hasVersionFix() < 1 ) ? null : new XAuthLoginListener();
+		}
 	}
 
 
