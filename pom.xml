@@ -29,7 +29,7 @@
 			<version>2.4.4</version>
 			<type>jar</type>
 			<scope>system</scope>
-			<systemPath>${basedir}/libs/xAuth-2.4.4.jar</systemPath>
+			<systemPath>${basedir}/libs/xAuth-2.4.4-mod.jar</systemPath>
 		</dependency>
        <dependency>
            <groupId>org.bukkit</groupId>
