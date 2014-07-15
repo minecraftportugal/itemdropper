@@ -50,7 +50,7 @@ public class ItemDropperPlugin extends JavaPlugin {
 			
 			else
 			{				
-				int period = getConfig().getInt("fallbackCheckPeriod", 1);
+				int period = getConfig().getInt("fallbackCheckPeriod", 5);
 				Utils.info("Auth plugin not found or not compatible, falling back to timed check of %d second(s)", period);
 				
 				timedTask = (new TimedCheckRunnable()).runTaskTimer(this, 100L, 20L * period);
