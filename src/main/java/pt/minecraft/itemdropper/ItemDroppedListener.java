@@ -13,32 +13,30 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 
 
 public class ItemDroppedListener implements Listener {
 	
 	
 	
-	private class DataBaseUpdaterRunnable extends BukkitRunnable
+	private class DataBaseUpdatedThread extends Thread
 	{
 		private ArrayList<ItemDrop> itemListQueue = new ArrayList<ItemDrop>();
-		private boolean isRunning = false;
+		private boolean cancel = false;
+	
 		
-		
-		public boolean isRunning()
+		public DataBaseUpdatedThread()
 		{
-			return isRunning;
+			setDaemon(false);
 		}
+		
 		
 		@Override
 		public void run()
 		{
 			ArrayList<ItemDrop> toUpdate = new ArrayList<ItemDrop>();
-			PreparedStatement stmt;
+			PreparedStatement stmt = null;
 			String sql = String.format("UPDATE `%s` SET `takendate` = ? WHERE `id` = ?", dbConn.getTableName());
-			
-			isRunning = true;
 			
 			try {
 			
@@ -61,6 +59,8 @@ public class ItemDroppedListener implements Listener {
 						}
 					}
 					
+					if( cancel ) break;
+					
 					// grab last items to update from queue
 					synchronized( itemListQueue )
 					{
@@ -78,9 +78,10 @@ public class ItemDroppedListener implements Listener {
 						{
 							if( drop.getRemoveDate() <= 0 )
 								drop.setRemoveDate();
+							
+							stmt = null;
 	  
 				            try {
-				            	
 								stmt = dbConn.prepare(sql);
 					            stmt.setTimestamp(1, new Timestamp(drop.getRemoveDate()));
 					            stmt.setInt(2, drop.getId());
@@ -88,7 +89,9 @@ public class ItemDroppedListener implements Listener {
 					            
 							} catch (SQLException e) {
 								if( plugin.isDebugMode() )
-									Utils.severe(e, "[DEBUG] Error while updating delivered item: %d", drop.getId());
+									Utils.debug(e, "Error while updating delivered item: %d", drop.getId());
+							} finally {
+								DB.safeClose(stmt);
 							}
 						}
 						
@@ -102,14 +105,8 @@ public class ItemDroppedListener implements Listener {
 					dbConn.close();
 			}
 
-		}
-		
-		@Override
-		public synchronized void cancel() throws IllegalStateException
-		{
-			cancel = true;
-			
-			super.cancel();
+	        if(ItemDroppedListener.this.plugin.isDebugMode())
+	        	Utils.debug("DataBaseUpdatedThread ended running");
 		}
 		
 		
@@ -141,8 +138,7 @@ public class ItemDroppedListener implements Listener {
 	
 	private ItemDropperPlugin plugin;
 	private DB dbConn = null;
-	private boolean cancel = false;
-	private DataBaseUpdaterRunnable dataBaseUpdater = null;
+	private DataBaseUpdatedThread dataBaseUpdater = null;
 	private String messageDelivered = null;
 	private String messageDropped = null;
 	
@@ -158,11 +154,11 @@ public class ItemDroppedListener implements Listener {
 		messageDelivered = plugin.getConfig().getString("messages.delivered");
 		messageDropped = plugin.getConfig().getString("messages.dropped");
 		
-		dataBaseUpdater = new DataBaseUpdaterRunnable();
-		dataBaseUpdater.runTaskAsynchronously(plugin);
+		dataBaseUpdater = new DataBaseUpdatedThread();
+		dataBaseUpdater.start();
 		
 		// wait until background thread is started
-		while(dataBaseUpdater.isRunning())
+		while(!dataBaseUpdater.isAlive())
 		{
 			try {
 				Thread.sleep(100);
@@ -172,7 +168,7 @@ public class ItemDroppedListener implements Listener {
 		}
 		
 		if( plugin.isDebugMode() )
-			Utils.info("[DEBUG] ItemDroppedListener started correctly");
+			Utils.debug("ItemDroppedListener started correctly");
 	}
 	
 	
@@ -193,7 +189,7 @@ public class ItemDroppedListener implements Listener {
 		iname = Utils.nameTreat(Material.getMaterial(item.getItem()).name());
 		
 		if( plugin.isDebugMode() )
-			Utils.info("[DEBUG] Delivering %d '%s' to '%s'", item.getSize(), iname, player.getName());
+			Utils.debug("Delivering %d '%s' to '%s'", item.getSize(), iname, player.getName());
 		
 		is = new ItemStack(item.getItem(), item.getSize(), item.getItemAux());
         leftOver = new HashMap<Integer, ItemStack>( player.getInventory().addItem(is) );
@@ -226,7 +222,7 @@ public class ItemDroppedListener implements Listener {
 	// this listener runs on main thread, lock as less as possible
 	
 	@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled=true)
-	public void onItemDropped(ItemDroppedEvent event)
+	public void onItemDropCheck(ItemDropCheckEvent event)
 	{
 		ItemDropperPoller poller = plugin.getPoller();
 		HashMap<Integer, ItemDrop> undeliveredDrops = null;
@@ -238,7 +234,7 @@ public class ItemDroppedListener implements Listener {
 			return;
 		
 		if( plugin.isDebugMode() )
-			Utils.info("[DEBUG] Received ItemDroppedEvent");
+			Utils.debug("Received ItemDropCheckEvent");
 		
 		undeliveredDrops = poller.getUndroppedMap();
 		
@@ -283,16 +279,34 @@ public class ItemDroppedListener implements Listener {
 	}
 	
 	
-	public void cancel()
+	public boolean cancel()
 	{
-		this.cancel = true;
+		if( dataBaseUpdater == null )
+			return false;
+		
+		dataBaseUpdater.cancel = true;
 
 		// wake up updater thread if its sleeping
 		synchronized( dataBaseUpdater )
 		{
 			dataBaseUpdater.notify();
 		}
+		
+		return true;
 	}
+	
+    public void cancelJoin()
+    {
+    	if( !this.cancel() )
+    		return;
+    	
+    	try {
+    		dataBaseUpdater.join();
+		} catch (InterruptedException e) { }
+    	
+        if(this.plugin.isDebugMode())
+        	Utils.debug("DataBaseUpdatedThread #cancelJoin");
+    }
 
 
 }

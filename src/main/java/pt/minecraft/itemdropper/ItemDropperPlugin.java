@@ -59,7 +59,7 @@ public class ItemDropperPlugin extends JavaPlugin {
 			
 	        this.saveConfig();
 	        
-	        poller.runTaskAsynchronously(this);
+	        poller.start();
 	        
 			Utils.info("enabled successfully");	
 
@@ -78,17 +78,17 @@ public class ItemDropperPlugin extends JavaPlugin {
 
 	@Override
 	public void onDisable()
-	{
-		HandlerList.unregisterAll(this);
+	{		
+		if( poller != null )
+			poller.cancelJoin();
 		
 		if( timedTask != null )
 			timedTask.cancel();
 		
-		if( listener != null )
-			listener.cancel();
+		HandlerList.unregisterAll(this);
 		
-		if( poller != null )
-			poller.cancel();
+		if( listener != null )
+			listener.cancelJoin();
 		
 		DB.configErrorBefore = false;
 		

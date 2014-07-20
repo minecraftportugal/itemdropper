@@ -136,7 +136,7 @@ public class PlayerProvider {
 				
 			}catch(Exception e) {
 				if(dropperPlugin.isDebugMode())
-					Utils.severe(e, "[DEBUG] Error getting player from plugin: %s", authPluginType.getName());
+					Utils.debug(e, "Error getting player from plugin: %s", authPluginType.getName());
 			}
 		}
 		

@@ -68,7 +68,7 @@ public class XAuthLoginListener implements Listener {
 			&& player.getStatus() == xAuthPlayer.Status.AUTHENTICATED )
 		{
 			// force a check, may this user have items to be delivered
-			Bukkit.getServer().getPluginManager().callEvent( new ItemDroppedEvent() );
+			Bukkit.getServer().getPluginManager().callEvent( new ItemDropCheckEvent() );
 		}
 	}
 	

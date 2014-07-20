@@ -85,6 +85,15 @@ public class Utils {
         return s.toLowerCase();
     }
     
+    public static void debug(String msg, Object ... args)
+    {
+    	info("[DEBUG] " + msg, args);
+    }
+    
+    public static void debug(Throwable t, String msg, Object ... args)
+    {
+    	severe(t, "[DEBUG] " + msg, args);
+    }
     
     
     public static void sendMessage(String message, CommandSender sender)

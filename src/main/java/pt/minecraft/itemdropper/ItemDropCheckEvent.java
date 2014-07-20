@@ -3,7 +3,7 @@ package pt.minecraft.itemdropper;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
-public class ItemDroppedEvent extends Event 
+public class ItemDropCheckEvent extends Event 
 {
     private static final HandlerList handlers = new HandlerList();
  

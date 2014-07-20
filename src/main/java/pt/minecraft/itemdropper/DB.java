@@ -71,7 +71,7 @@ public class DB {
         url = "jdbc:mysql://" + host + ":" + port + "/" + db + "";
         
         if(plugin.isDebugMode())
-        	Utils.info("[DEBUG] Using database url: '%s'", url);
+        	Utils.debug("Using database url: '%s'", url);
         
 //        if( tablePrefix == null )
 //        	tablePrefix = "";
@@ -192,7 +192,7 @@ public class DB {
 			sb.append(");");
 			
 			if( plugin.isDebugMode() )
-				Utils.info("[DEBUG] Creating database");
+				Utils.debug("Creating database");
 			
 			PreparedStatement stmt = prepare( sb.toString() );
 			stmt.executeUpdate();
@@ -210,6 +210,15 @@ public class DB {
     {
     	if( stmt != null )
     		stmt.close();
+    }
+    public static void safeClose(PreparedStatement stmt)
+    {
+    	if( stmt != null )
+    	{
+			try {
+				stmt.close();
+			} catch (SQLException e) { }
+    	}
     }
     
     public void close()

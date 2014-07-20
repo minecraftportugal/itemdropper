@@ -8,7 +8,7 @@ public class TimedCheckRunnable extends BukkitRunnable {
 	@Override
 	public void run() {
 
-		Bukkit.getServer().getPluginManager().callEvent( new ItemDroppedEvent() );
+		Bukkit.getServer().getPluginManager().callEvent( new ItemDropCheckEvent() );
 		
 	}
 	

@@ -1,42 +1,35 @@
 package pt.minecraft.itemdropper;
 
 import org.bukkit.Bukkit;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 
-class ItemDropperPoller extends BukkitRunnable
+class ItemDropperPoller extends Thread
 {
 	
 	
-	private class ItemDropRunnable extends BukkitRunnable {
+	private static class CallDropEvent implements Callable<Void> {
 
 		@Override
-		public void run()
+		public Void call() throws Exception
 		{
-//			while(!cancel)
-//			{
-//				try {
-//					synchronized(itemDropRunnable)
-//					{
-//						itemDropRunnable.wait();
-//					}
-					
-					Bukkit.getServer().getPluginManager().callEvent(new ItemDroppedEvent());
-//					
-//				} catch (InterruptedException e) { }
-//			}
 			
+			Bukkit.getServer().getPluginManager().callEvent(new ItemDropCheckEvent());
+			
+			return null;
 		}
 		
 	}
-	
 	
 	
 	
@@ -46,13 +39,15 @@ class ItemDropperPoller extends BukkitRunnable
     private long interval;
     private HashMap<Integer, ItemDrop> undroppedItems = new HashMap<Integer, ItemDrop>();
     private ArrayList<ItemDrop> itemsToRemove = new ArrayList<ItemDrop>(); 
-    //private ItemDropRunnable itemDropRunnable = null;
-    //private BukkitTask itemDropTask = null;
     private final DB dbConn;
+    private final CallDropEvent eventCallerInstance = new CallDropEvent();
+    private final Object cancelMutex = new Object();
 
     
     public ItemDropperPoller(ItemDropperPlugin plugin) throws SQLException
     {
+    	setDaemon(false);
+    	
     	this.plugin = plugin;
     	int _interval = plugin.getConfig().getInt("pollDatabase", 1);
         interval = _interval * 1000L;
@@ -63,19 +58,7 @@ class ItemDropperPoller extends BukkitRunnable
         	throw new SQLException("Could not connect to database");
         
         if( plugin.isDebugMode() )
-        	Utils.info("[DEBUG] Database poll interval: %d", _interval);
-        
-//        itemDropRunnable = new ItemDropRunnable();
-//        itemDropTask = itemDropRunnable.runTaskLater(plugin, 20);
-    }
-    
-
-    public void cancel()
-    {
-        cancel = true;
-        
-        //itemDropTask.cancel();
-        super.cancel();
+        	Utils.debug("Database poll interval: %d", _interval);
     }
     
    
@@ -89,6 +72,7 @@ class ItemDropperPoller extends BukkitRunnable
         ResultSet rs;
         ItemDrop drop;
         ArrayList<ItemDrop> dropQueue = new ArrayList<ItemDrop>();
+        Future<Void> lastFuture = null;
         
         String sql = String.format("SELECT * FROM `%s` WHERE `id` > ? AND `takendate` IS null AND `active` = 1 ORDER BY `id` ASC;", dbConn.getTableName());
         
@@ -101,6 +85,18 @@ class ItemDropperPoller extends BukkitRunnable
 
             while( !cancel )
             {
+            	
+            	if( lastFuture != null )
+            	{
+	            	try {
+	            		lastFuture.get();
+					} catch (   InterruptedException 
+							  | ExecutionException
+							  | CancellationException e ) { }
+	            	
+	            	lastFuture = null;
+            	}
+            	
             	
             	// Remove items already delivered
             	
@@ -119,6 +115,8 @@ class ItemDropperPoller extends BukkitRunnable
 	                	}
                 	}
         		}
+        		
+        		stmt = null;
         		
 	            try
 	            {
@@ -149,7 +147,7 @@ class ItemDropperPoller extends BukkitRunnable
                     if( dropQueue.size() > 0 )
                     {
                     	if( plugin.isDebugMode() );
-                			Utils.info("[DEBUG] Received %d new items from database", dropQueue.size());
+                			Utils.debug("Received %d new items from database", dropQueue.size());
                 		
                     	synchronized(undroppedItems)
                     	{
@@ -159,39 +157,61 @@ class ItemDropperPoller extends BukkitRunnable
                     	
                     	dropQueue.clear();
                     	
-                    	(new ItemDropRunnable()).runTask(plugin);
-                    	
-//                    	synchronized(itemDropRunnable)
-//                    	{
-//	                    	// send the event now
-//                    		itemDropRunnable.notify();
-//                    	}
+                    	lastFuture = Bukkit.getScheduler().callSyncMethod(this.plugin, eventCallerInstance);
                     }
 	                
 	            } catch (SQLException e) {
 	            	
 	            	if( plugin.isDebugMode() )
-	            		Utils.severe(e, "Error while executing query");
+	            		Utils.debug(e, "Error while executing query");
 	            		
 	            } finally {
-	            	try {
-						DB.close(stmt);
-					} catch (SQLException e) { }
+	            	DB.safeClose(stmt);
 	            }
+	            
+	            if( cancel ) break;
 	            
 	            try
 	            {
-	                Thread.sleep(interval);
-	            }
-	            catch (InterruptedException e)
-	            {
-	                cancel = true;
-	            }
+	            	synchronized(cancelMutex)
+	            	{
+	            		cancelMutex.wait(interval);
+	            	}
+	            	
+	            } catch (InterruptedException e) {}
+	            
 	        }
                 
         } finally {
         	dbConn.close();
         }
+        
+        if(this.plugin.isDebugMode())
+        	Utils.debug("ItemDropperPoller ended running");
+    }
+    
+    
+    
+    public void cancel()
+    {
+        cancel = true;
+        
+    	synchronized(cancelMutex)
+    	{
+    		cancelMutex.notify();
+    	}
+    }
+    
+    public void cancelJoin()
+    {
+    	this.cancel();
+    	
+    	try {
+			this.join();
+		} catch (InterruptedException e) { }
+    	
+        if(this.plugin.isDebugMode())
+        	Utils.debug("ItemDropperPoller #cancelJoin");
     }
     
     
