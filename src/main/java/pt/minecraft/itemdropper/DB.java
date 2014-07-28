@@ -17,7 +17,7 @@ public class DB {
 	//private String tablePrefix = null;
 	private boolean configured = false;
 	
-	private String table_name = "cenas";
+	private String table_name = "itemdrop";
 	
 	private boolean isClosed = false;
 	public static boolean configErrorBefore = false;

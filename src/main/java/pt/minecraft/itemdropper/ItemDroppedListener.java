@@ -182,6 +182,7 @@ public class ItemDroppedListener implements Listener {
 		String iname;
 		HashMap<Integer, ItemStack> leftOver;
 		Player player = item.getPlayer();
+		int lSize;
 		
 		if( player == null )
 			return;
@@ -193,6 +194,7 @@ public class ItemDroppedListener implements Listener {
 		
 		is = new ItemStack(item.getItem(), item.getSize(), item.getItemAux());
         leftOver = new HashMap<Integer, ItemStack>( player.getInventory().addItem(is) );
+        lSize = leftOver.size();
 
         Utils.sendMessage(
         		String.format(
@@ -201,7 +203,7 @@ public class ItemDroppedListener implements Listener {
         				iname ),
         		player);
 
-        if( leftOver.size() > 0 )
+        if( lSize > 0 )
         {
         	for(Entry<Integer, ItemStack> s : leftOver.entrySet())
 	        {
@@ -210,7 +212,12 @@ public class ItemDroppedListener implements Listener {
 					                		s.getValue() );
 	        }
         	
-            Utils.sendMessage( messageDropped, player);
+            Utils.sendMessage(
+            		String.format(
+            				messageDropped,
+            				Integer.toString(lSize),
+            				iname ),
+            		player);
         }
         
         // reset remove date as NOW

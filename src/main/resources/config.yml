@@ -10,5 +10,5 @@ debug: false
 pollDatabase: 1
 fallbackCheckPeriod: 5
 messages:
-  delivered: You have been delivered %s time(s) the item '%s'
-  dropped: Your inventory was full, the items were dropped on the ground
+  delivered: '{BRIGHTGREEN}Recebeste %s %s!'
+  dropped: '{BRIGHTGREEN}Wow! %s %s caiu perto de ti!'
