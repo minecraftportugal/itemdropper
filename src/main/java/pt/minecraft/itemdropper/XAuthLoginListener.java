@@ -8,7 +8,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 
-import de.luricos.bukkit.xAuth.xAuth;
 import de.luricos.bukkit.xAuth.xAuthPlayer;
 import de.luricos.bukkit.xAuth.events.xAuthLoginEvent;
 import de.luricos.bukkit.xAuth.events.xAuthPlayerJoinEvent;
@@ -21,27 +20,6 @@ public class XAuthLoginListener implements Listener {
 
 	private XAuthLoginListener()  { }
 
-	
-	
-//	@EventHandler(priority=EventPriority.MONITOR)
-//	public void onPlayerJoinEvent(PlayerJoinEvent event)
-//	{
-//		Player p = event.getPlayer();
-//		xAuthPlayer xp = null;
-//		
-//		//Utils.info("PlayerJoinEvent: %s, %s", xp.getName(),  xp.getStatus().toString());
-//		
-//		if( p == null )
-//			return;
-//		
-//		xp = manager.getPlayer(p);
-//		
-//		if(    xp != null 
-//			&& xp.isOnline()
-//			&& xp.getStatus() == Status.AUTHENTICATED )
-//			emiteEvent();
-//	}
-	
 	
 	@EventHandler(priority=EventPriority.NORMAL)
 	public void onXauthLoginEvent(xAuthPlayerJoinEvent event)
@@ -72,27 +50,32 @@ public class XAuthLoginListener implements Listener {
 		}
 	}
 	
-	public static XAuthLoginListener safeInstance()
+	public static XAuthLoginListener safeInstance(ItemDropperPlugin plugin)
 	{
 		Plugin jPlugin = Bukkit.getServer().getPluginManager().getPlugin(PlayerProvider.AuthPluginType.XAUTH.getName());
+		Method xLoginMethod = null;
+		Method xJoinMethod = null;
 		
-		if( jPlugin == null )
-			return null;
+		if( jPlugin != null )
+		{
+			try {
+				xLoginMethod = xAuthLoginEvent.class.getMethod("getPlayer");
+				if( xLoginMethod.getReturnType() != xAuthPlayer.class )
+					xLoginMethod = null;
+				
+				xJoinMethod = xAuthPlayerJoinEvent.class.getMethod("getPlayer");
+				if( xJoinMethod.getReturnType() != xAuthPlayer.class )
+					xJoinMethod = null;
+			} catch(Exception e) {
+				if( plugin.isDebugMode() )
+					Utils.severe(e, "Not using proper xAuth");
+			}
+		}
 		
-		xAuth plugin = (xAuth)jPlugin;
-		Method m = null;
-		
-		try {
-			m = xAuth.class.getMethod("hasVersionFix");
-		} catch(Exception e) { }
-		
-		if( m == null )
-			return null;
-		
-		plugin = (xAuth) Bukkit.getServer().getPluginManager().getPlugin(PlayerProvider.AuthPluginType.XAUTH.getName());
-
-		return ( plugin.hasVersionFix() < 1 ) ? null : new XAuthLoginListener();
-
+		return (    xLoginMethod == null
+				 || xJoinMethod  == null )
+						? null
+						: new XAuthLoginListener();
 	}
 
 

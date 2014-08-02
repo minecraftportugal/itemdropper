@@ -5,7 +5,7 @@ mysql:
   db: database
   username: username
   password: password
-  table: itemdrop
+  table: itemdrops
 debug: false
 pollDatabase: 1
 fallbackCheckPeriod: 5

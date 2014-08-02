@@ -1,4 +1,6 @@
 name: ItemDropper
 main: pt.minecraft.itemdropper.ItemDropperPlugin
-version: 0.1.4
+version: 0.1.5
+description: Delivers items to players
+author: [disco, vxf]
 softdepend: [xAuth]

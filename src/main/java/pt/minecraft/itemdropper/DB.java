@@ -41,7 +41,6 @@ public class DB {
 		username = plugin.getConfig().getString("mysql.username");
 		password = plugin.getConfig().getString("mysql.password");
 		table_name = plugin.getConfig().getString("mysql.table");
-		//tablePrefix = plugin.getConfig().getString("mysql.prefix");
 		
 		if( !enabled )
 		{
@@ -72,9 +71,7 @@ public class DB {
         
         if(plugin.isDebugMode())
         	Utils.debug("Using database url: '%s'", url);
-        
-//        if( tablePrefix == null )
-//        	tablePrefix = "";
+
         
         configured = true;
         
@@ -91,8 +88,6 @@ public class DB {
 	        	throw e;
 	        }   
         }
-        
-
 		
 		return true;
 	}
@@ -145,7 +140,6 @@ public class DB {
 		try {
 			
 			stmt = prepare("SHOW TABLES LIKE ?");
-			//stmt.setString(1, tablePrefix + name);
 			stmt.setString(1, name);
 			
 			rs = stmt.executeQuery();
@@ -172,9 +166,6 @@ public class DB {
         {
         	StringBuilder sb = new StringBuilder();
         	sb.append("CREATE TABLE `");
-        	
-//        	if(tablePrefix.length() > 0 )
-//        		sb.append(tablePrefix);
         	
         	sb.append(table_name);
         	sb.append("` ( ");

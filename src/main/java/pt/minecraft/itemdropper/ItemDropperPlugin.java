@@ -43,7 +43,7 @@ public class ItemDropperPlugin extends JavaPlugin {
 			
 			pluginManager.registerEvents(listener, this);
 			
-			XAuthLoginListener xAuthListener = XAuthLoginListener.safeInstance();
+			XAuthLoginListener xAuthListener = XAuthLoginListener.safeInstance(this);
 			// try to register the xAuth Listener\ compatible version	
 			if( xAuthListener != null )
 				pluginManager.registerEvents(xAuthListener, this);

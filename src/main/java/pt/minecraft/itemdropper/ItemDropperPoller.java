@@ -72,7 +72,7 @@ class ItemDropperPoller extends Thread
         ResultSet rs;
         ItemDrop drop;
         ArrayList<ItemDrop> dropQueue = new ArrayList<ItemDrop>();
-        Future<Void> lastFuture = null;
+        Future<Void> activeTaskFuture = null;
         
         String sql = String.format("SELECT * FROM `%s` WHERE `id` > ? AND `takendate` IS null AND `active` = 1 ORDER BY `id` ASC;", dbConn.getTableName());
         
@@ -86,15 +86,15 @@ class ItemDropperPoller extends Thread
             while( !cancel )
             {
             	
-            	if( lastFuture != null )
+            	if( activeTaskFuture != null )
             	{
 	            	try {
-	            		lastFuture.get();
+	            		activeTaskFuture.get();
 					} catch (   InterruptedException 
 							  | ExecutionException
 							  | CancellationException e ) { }
 	            	
-	            	lastFuture = null;
+	            	activeTaskFuture = null;
             	}
             	
             	
@@ -140,8 +140,6 @@ class ItemDropperPoller extends Thread
 	                        dropQueue.add(drop);
                         }
                         
-                        if( id > lastId )
-                        	lastId = id;
                     }
                     
                     if( dropQueue.size() > 0 )
@@ -152,12 +150,17 @@ class ItemDropperPoller extends Thread
                     	synchronized(undroppedItems)
                     	{
                     		for(ItemDrop d : dropQueue)
+                    		{
                     			undroppedItems.put(d.getId(), d);
+                    			
+                                if( d.getId() > lastId )
+                                	lastId = d.getId();
+                    		}
                     	}
                     	
                     	dropQueue.clear();
                     	
-                    	lastFuture = Bukkit.getScheduler().callSyncMethod(this.plugin, eventCallerInstance);
+                    	activeTaskFuture = Bukkit.getScheduler().callSyncMethod(this.plugin, eventCallerInstance);
                     }
 	                
 	            } catch (SQLException e) {
