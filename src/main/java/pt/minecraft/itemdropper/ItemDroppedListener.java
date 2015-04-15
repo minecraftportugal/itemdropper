@@ -191,6 +191,8 @@ public class ItemDroppedListener implements Listener {
 		
 		if( plugin.isDebugMode() )
 			Utils.debug("Delivering %d '%s' to '%s'", item.getSize(), iname, player.getName());
+
+		Utils.info("Delivering %d '%s' to '%s'", item.getSize(), iname, player.getName());
 		
 		is = new ItemStack(item.getItem(), item.getSize(), item.getItemAux());
         leftOver = new HashMap<Integer, ItemStack>( player.getInventory().addItem(is) );
